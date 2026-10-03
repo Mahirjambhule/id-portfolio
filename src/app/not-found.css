@@ -1,0 +1,70 @@
+/* ---------------------------------------------------------------------- */
+/* The missing page: the hero's lanyard, with nothing on it. It hangs from  */
+/* just above the screen to where the badge's ring would be, and the air    */
+/* stirs it. `--hang` is how far down the screen the empty ring hangs.      */
+/* ---------------------------------------------------------------------- */
+
+.empty-lanyard {
+  --hang: clamp(130px, 22svh, 240px);
+  --u: 1.05px;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 10;
+  width: 0;
+  height: var(--hang);
+  pointer-events: none;
+}
+
+@media (min-width: 1024px) {
+  .empty-lanyard {
+    --hang: clamp(160px, 24svh, 260px);
+    --u: 1.2px;
+    left: 72%;
+  }
+}
+
+/* The cord and its hardware, drawn to the hero's design pixels. The cord runs
+   far up out of sight; it swings about a point just above the screen. */
+.empty-lanyard svg {
+  position: absolute;
+  bottom: calc(var(--u) * -12);
+  left: calc(var(--u) * -30);
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 912);
+  overflow: visible;
+  transform-origin: 50% calc(100% - var(--hang) - var(--u) * 12 - 20px);
+  animation: empty-lanyard-sway 9s ease-in-out infinite alternate;
+}
+
+/* The ring swings on its eyelet, at a pace of its own. */
+.empty-lanyard__ring {
+  transform-box: view-box;
+  transform-origin: 0 -27px;
+  animation: empty-lanyard-ring 3.1s ease-in-out infinite alternate;
+}
+
+@keyframes empty-lanyard-sway {
+  from {
+    rotate: -1.6deg;
+  }
+  to {
+    rotate: 1.6deg;
+  }
+}
+
+@keyframes empty-lanyard-ring {
+  from {
+    rotate: 5deg;
+  }
+  to {
+    rotate: -5deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-lanyard svg,
+  .empty-lanyard__ring {
+    animation: none;
+  }
+}

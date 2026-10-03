@@ -1,0 +1,904 @@
+/* Selected work: an orbit of acrylic slabs in a lit room. The component holds
+   the motion; this file holds the room, the stage, the slabs' material and the
+   type set on them. */
+
+@layer components {
+  .work {
+    position: relative;
+    z-index: 20;
+    /* The hero's wall runs on underneath. The section's own tone arrives and
+       leaves as a gradient, so there is no edge at either end. */
+    background: linear-gradient(
+      180deg,
+      rgb(248 246 242 / 0) 0,
+      #f8f6f2 52vh,
+      #f8f6f2 calc(100% - 12vh),
+      rgb(248 246 242 / 0) 100%
+    );
+  }
+
+  /* A short tail: "How I work" begins under it, on the same wall. */
+  .work__tail {
+    height: 12vh;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Without the orbit (no script, reduced motion, a viewport too short  */
+  /* to hold it): the title, then the cards one after another.           */
+  /* ------------------------------------------------------------------ */
+
+  .work__stage {
+    --gutter: 24px;
+    position: relative;
+    padding: clamp(40px, 8vh, 96px) var(--gutter);
+    /* A card's shadow falls a little to one side of it, and on a narrow
+       screen that is past the edge of the page. */
+    overflow-x: clip;
+  }
+
+  .work__room,
+  .work__rail,
+  .work__veil,
+  .work__fade {
+    display: none;
+  }
+
+  .work__head {
+    position: relative;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: clamp(32px, 7vh, 72px);
+    text-align: center;
+  }
+
+  .work__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 1.1em;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink-faint);
+  }
+
+  /* Tracking adds a space after the last letter too. Take it back, so the
+     words are centred on what is seen. */
+  .work__eyebrow > span:not([aria-hidden]) {
+    margin-right: -0.34em;
+  }
+
+  .work__rule {
+    width: 28px;
+    height: 1px;
+    background: rgb(27 24 21 / 0.18);
+  }
+
+  .work__title {
+    margin-top: clamp(12px, 2.2svh, 22px);
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, min(5.4vw, 8.2svh), 6rem);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+
+  .work__title em {
+    font-style: italic;
+    letter-spacing: -0.02em;
+    color: var(--color-cobalt);
+  }
+
+  .orbit__ring {
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    flex-direction: column;
+    gap: clamp(28px, 6vh, 64px);
+    margin-inline: auto;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* A card: a slab of acrylic with real thickness. Its back, its rim    */
+  /* and its face are separate planes a little apart, and its shadow     */
+  /* lies on a plane of its own behind them.                             */
+  /* ------------------------------------------------------------------ */
+
+  .orbit__slot {
+    /* The room's light: where it comes from, its colour, and the shadow it throws. */
+    --key: 118deg;
+    --tint: 255 255 255;
+    --shade: 92 88 82;
+    --shadow-x: 16px;
+    --shadow-y: 34px;
+    --radius: 22px;
+    --thick: 11px;
+    position: relative;
+    aspect-ratio: 33 / 54;
+  }
+
+  .orbit__slot[data-light="side"] {
+    --key: 250deg;
+    --tint: 242 246 251;
+    --shade: 84 92 104;
+    --shadow-x: -18px;
+    --shadow-y: 30px;
+  }
+
+  .orbit__slot[data-light="soft"] {
+    --key: 0deg;
+    --tint: 251 250 248;
+    --shade: 96 92 86;
+    --shadow-x: 0px;
+    --shadow-y: 40px;
+  }
+
+  .orbit__slot[data-light="daylight"] {
+    --key: 176deg;
+    --tint: 255 255 255;
+    --shade: 70 76 86;
+    --shadow-x: 6px;
+    --shadow-y: 26px;
+  }
+
+  /* Each project's accent: the small dot beside its category. */
+  .orbit__slot[data-accent="slate"] {
+    --accent: 96 118 152;
+  }
+
+  .orbit__slot[data-accent="sage"] {
+    --accent: 86 127 109;
+  }
+
+  .orbit__slot[data-accent="clay"] {
+    --accent: 192 104 58;
+  }
+
+  .orbit__slot[data-accent="stone"] {
+    --accent: 128 122 114;
+  }
+
+  .slab,
+  .slab__shadow,
+  .slab__shadow-shift {
+    position: absolute;
+    inset: 0;
+  }
+
+  .slab__shadow,
+  .slab__shadow-shift {
+    pointer-events: none;
+  }
+
+  /* The shadow lies behind, away from the light. */
+  .slab__shadow-shift {
+    translate: var(--shadow-x) var(--shadow-y);
+  }
+
+  .slab__shadow-far,
+  .slab__shadow-near {
+    position: absolute;
+  }
+
+  /* Each shadow is cast round a box hidden behind the slab, so it is painted
+     once: a blur filter would be worked again on every frame of a turn. The
+     boxes sit far enough inside the slab that, however the light falls, the
+     clear patch a box shadow leaves under its own box never shows. */
+  .slab__shadow-far {
+    inset: 8% 26px 52px;
+    border-radius: 40px;
+    box-shadow: 0 0 64px 26px rgb(var(--shade) / 0.2);
+  }
+
+  .slab__shadow-near {
+    inset: 22px 24px 32px;
+    border-radius: 30px;
+    box-shadow: 0 0 18px 6px rgb(var(--shade) / 0.15);
+    translate: calc(var(--shadow-x) * -0.6) calc(var(--shadow-y) * -0.6);
+  }
+
+  .slab__back,
+  .card {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius);
+  }
+
+  /* The body of the slab, seen at its edge as it turns: milky, with a
+     polished rim that catches the light. */
+  .slab__back {
+    border: 1.5px solid rgb(255 255 255 / 0.75);
+    background: linear-gradient(
+      var(--key),
+      rgb(var(--tint) / 0.96) 0%,
+      rgb(250 248 244 / 0.94) 50%,
+      rgb(236 231 222 / 0.96) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px rgb(var(--shade) / 0.06),
+      0 0 0 1px rgb(var(--shade) / 0.16);
+  }
+
+  /* The polished face: milky, brighter on the side the light comes from,
+     lit along its upper edge. */
+  .card {
+    overflow: hidden;
+    container: card / inline-size;
+    background: linear-gradient(
+      var(--key),
+      rgb(var(--tint) / 0.94) 0%,
+      rgb(255 255 255 / 0.88) 46%,
+      rgb(245 241 234 / 0.92) 100%
+    );
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 0.92),
+      inset 0 1.5px 1px rgb(255 255 255 / 1),
+      inset 0 -26px 40px -30px rgb(var(--shade) / 0.24),
+      0 0 0 1px rgb(var(--shade) / 0.15);
+    color: var(--color-ink);
+  }
+
+  /* The face carries nothing but words, set like a page of a catalogue: its
+     category over a hairline, its name large and one line about it, then,
+     under a second hairline, what it is, what it was built with and the way
+     in. The words are printed on the face, so the reflections lie under them:
+     they pass over the slab and never over a line of text. */
+  .card__copy {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 4.6cqw 5.2cqw 4.4cqw;
+  }
+
+  .card__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.9em;
+    font-family: var(--font-mono);
+    font-size: clamp(0.5625rem, 1.25cqw, 0.8125rem);
+    line-height: 1;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink-faint);
+  }
+
+  /* The hairline runs on from the category to the far edge. */
+  .card__kicker::after {
+    content: "";
+    height: 1px;
+    flex: 1;
+    margin-left: 0.5em;
+    background: rgb(27 24 21 / 0.1);
+  }
+
+  .card__dot {
+    width: 6px;
+    height: 6px;
+    flex: none;
+    border-radius: 50%;
+    background: rgb(var(--accent));
+    box-shadow: 0 0 0 3px rgb(var(--accent) / 0.14);
+  }
+
+  /* The name and its line stand on the lower hairline, with the air above them. */
+  .card__lead {
+    align-self: end;
+    padding-bottom: 3.6cqw;
+  }
+
+  .card__title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 10.4cqw, 7.25rem);
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .card__line {
+    max-width: 19em;
+    margin-top: 2.2cqw;
+    font-family: var(--font-display);
+    font-size: clamp(1.0625rem, 3.35cqw, 2.4rem);
+    font-weight: 300;
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    color: var(--color-ink-soft);
+  }
+
+  .card__line em {
+    font-style: italic;
+    color: var(--color-ink);
+  }
+
+  .card__foot {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 3.8cqw;
+    padding-top: 2.8cqw;
+    border-top: 1px solid rgb(27 24 21 / 0.1);
+  }
+
+  .card__text {
+    max-width: 30em;
+    font-size: clamp(0.8125rem, 1.8cqw, 1.1875rem);
+    line-height: 1.5;
+    text-wrap: pretty;
+    color: var(--color-ink-soft);
+  }
+
+  .card__label {
+    font-family: var(--font-mono);
+    font-size: clamp(0.5rem, 1.1cqw, 0.75rem);
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--color-ink-faint);
+  }
+
+  /* What it was built with, as words in two columns rather than a row of chips. */
+  .card__tags {
+    display: grid;
+    grid-template-columns: repeat(2, max-content);
+    gap: 0.05em 1.5em;
+    margin-top: 1.2cqw;
+    font-size: clamp(0.8125rem, 1.8cqw, 1.1875rem);
+    line-height: 1.45;
+    color: var(--color-ink);
+  }
+
+  .card__cta {
+    display: inline-flex;
+    height: clamp(2.5rem, 5.6cqw, 3.5rem);
+    align-items: center;
+    gap: 1rem;
+    justify-self: end;
+    padding: 0 0.3125rem 0 1.375rem;
+    border: 1px solid rgb(27 24 21 / 0.12);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.8);
+    box-shadow: 0 1px 2px rgb(var(--shade) / 0.06);
+    font-family: var(--font-mono);
+    font-size: clamp(0.625rem, 1.25cqw, 0.875rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink);
+  }
+
+  .card__knob {
+    display: grid;
+    height: calc(100% - 10px);
+    aspect-ratio: 1;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-cobalt);
+    color: var(--color-paper);
+    transition: background-color 0.5s ease;
+  }
+
+  a.card__cta:hover .card__knob,
+  a.card__cta:focus-visible .card__knob {
+    background: var(--color-cobalt-deep);
+  }
+
+  .card__arrow {
+    display: block;
+    transition: transform 0.5s var(--ease-out-expo);
+  }
+
+  a.card__cta:hover .card__arrow,
+  a.card__cta:focus-visible .card__arrow {
+    transform: translateX(3px);
+  }
+
+  /* Everything reflected in the face. */
+  .card__gloss-track,
+  .card__spot {
+    position: absolute;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .card__gloss-track {
+    inset: 0;
+  }
+
+  /* A long highlight from the window, with the dimmer room on either side. */
+  .card__gloss {
+    position: absolute;
+    top: -30%;
+    left: -45%;
+    width: 190%;
+    height: 160%;
+    background: linear-gradient(
+      108deg,
+      rgb(var(--shade) / 0.035) 0%,
+      rgb(255 255 255 / 0) 30%,
+      rgb(255 255 255 / 0) 41%,
+      rgb(255 255 255 / 0.34) 48%,
+      rgb(255 255 255 / 0.08) 54%,
+      rgb(255 255 255 / 0) 62%,
+      rgb(var(--shade) / 0.03) 100%
+    );
+  }
+
+  /* The light at the pointer. */
+  .card__spot {
+    top: 0;
+    left: 0;
+    width: 560px;
+    height: 560px;
+    margin: -280px 0 0 -280px;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgb(255 255 255 / 0.46), rgb(255 255 255 / 0));
+    opacity: 0;
+  }
+
+  /* Narrow: the same page, its foot stacked. */
+  @container card (width < 520px) {
+    .card__copy {
+      padding: 6.6cqw 6.8cqw 6.4cqw;
+    }
+
+    .card__kicker {
+      font-size: clamp(0.5625rem, 2.7cqw, 0.6875rem);
+    }
+
+    .card__lead {
+      padding-bottom: 6cqw;
+    }
+
+    .card__title {
+      font-size: clamp(2.25rem, 14.5cqw, 3.5rem);
+    }
+
+    .card__line {
+      margin-top: 3.6cqw;
+      font-size: clamp(1.125rem, 6.4cqw, 1.5rem);
+    }
+
+    .card__foot {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 5cqw;
+      padding-top: 5.4cqw;
+    }
+
+    .card__text {
+      font-size: clamp(0.875rem, 3.9cqw, 1rem);
+    }
+
+    .card__label {
+      font-size: 0.5625rem;
+    }
+
+    .card__tags {
+      margin-top: 2.2cqw;
+      font-size: clamp(0.8125rem, 3.7cqw, 0.9375rem);
+    }
+
+    .card__cta {
+      height: 2.5rem;
+      justify-self: start;
+      font-size: 0.625rem;
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The orbit. The stage fills the viewport and is pinned there; the    */
+  /* title stays at the top of it and the cards ride the orbit beneath.  */
+  /* ------------------------------------------------------------------ */
+
+  /* The stage carries the section's tone itself, fading in from the wall at
+     its top. The page is moved about behind it while it is pinned, so nothing
+     that scrolls may show through: the section only paints its way out. */
+  .work[data-presenting] {
+    background: linear-gradient(180deg, #f8f6f2, rgb(248 246 242 / 0)) bottom / 100% 12vh no-repeat;
+  }
+
+  .work[data-presenting] .work__stage {
+    display: flex;
+    height: 100svh;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgb(248 246 242 / 0) 0, #f8f6f2 34%);
+  }
+
+  /* The top of the stage is clear as it rises, so the wall shows through,
+     and closes over once it has locked into place: the veil fades in behind
+     the room (from the film), and the stage is then sealed. Sealed, it is
+     opaque, so the page behind it is not drawn at all while the orbit turns;
+     and the room, over an opaque stage, is softened at top and bottom by two
+     fades in place of its mask, which look the same and cost far less. */
+  .work[data-presenting] .work__veil {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    display: block;
+    height: 34%;
+    background: #f8f6f2;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .work[data-presenting] .work__stage[data-sealed] {
+    background: #f8f6f2;
+  }
+
+  .work[data-presenting] .work__stage[data-sealed] .work__veil {
+    display: none;
+  }
+
+  .work[data-presenting] .work__stage[data-sealed] .work__room {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .work[data-presenting] .work__stage[data-sealed] .work__fade {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* The mask is clear at the top and solid by 22%, solid again until 84%
+     and clear at the foot: each fade is the stage's own colour over what the
+     mask would have let through. */
+  .work__fade--top {
+    top: 0;
+    height: 22%;
+    background: linear-gradient(180deg, #f8f6f2, rgb(248 246 242 / 0));
+  }
+
+  .work__fade--bottom {
+    bottom: 0;
+    height: 16%;
+    background: linear-gradient(180deg, rgb(248 246 242 / 0), #f8f6f2);
+  }
+
+  .work[data-presenting] .work__head {
+    flex: none;
+    margin: 0;
+    padding: clamp(28px, 6.4svh, 76px) var(--gutter) 0;
+    pointer-events: none;
+  }
+
+  .work[data-presenting] .orbit {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: clamp(8px, 2.2svh, 28px) 0 clamp(56px, 9svh, 104px);
+  }
+
+  /* The turntable on the floor under the orbit: a rim with marks round it
+     and a mark under each card, all turning with the orbit, in fine
+     graphite. It has a layer of its own, so redrawing its marks never paints
+     anything else. */
+  .orbit__floor {
+    display: none;
+  }
+
+  .work[data-presenting] .orbit__floor {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    opacity: 0;
+    pointer-events: none;
+    will-change: transform;
+  }
+
+  .orbit__rim {
+    fill: none;
+    stroke: rgb(56 52 46 / 0.2);
+    stroke-width: 1;
+  }
+
+  .orbit__rim--inner {
+    stroke: rgb(56 52 46 / 0.11);
+  }
+
+  .orbit__ticks {
+    fill: none;
+    stroke: rgb(56 52 46 / 0.28);
+    stroke-width: 1;
+    stroke-linecap: round;
+  }
+
+  .orbit__ticks--far {
+    stroke: rgb(56 52 46 / 0.12);
+  }
+
+  .orbit__station {
+    fill: #f8f6f2;
+    stroke: rgb(56 52 46 / 0.42);
+    stroke-width: 1;
+  }
+
+  .orbit__station[data-front] {
+    fill: var(--color-cobalt);
+    stroke: none;
+  }
+
+  /* The orbit itself is a point: the middle of the stage, which every card
+     is placed around and the lens looks at. */
+  .work[data-presenting] .orbit__ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    width: 0;
+    height: 0;
+    max-width: none;
+    margin: 0;
+    transform-style: preserve-3d;
+  }
+
+  .work[data-presenting] .orbit__slot {
+    --radius: clamp(16px, calc(var(--card-w) * 0.034), 30px);
+    position: absolute;
+    top: calc(var(--card-h) / -2);
+    left: calc(var(--card-w) / -2);
+    width: var(--card-w);
+    height: var(--card-h);
+    aspect-ratio: auto;
+    transform-style: preserve-3d;
+  }
+
+  /* Nothing on the way down to a layer may flatten the space: no clipping,
+     opacity or filters on these. Those go on the layers themselves. */
+  .work[data-presenting] .slab {
+    transform-style: preserve-3d;
+  }
+
+  .work[data-presenting] .slab__shadow {
+    transform: translateZ(-40px);
+  }
+
+  .work[data-presenting] .slab__back {
+    transform: translateZ(calc(var(--thick) * -1));
+  }
+
+  /* How the slabs are painted, so that nothing that moves has to be painted
+     again.
+
+     What is soft by nature and moves inside a slab (its reflections and its
+     shadow) has a layer of its own throughout: the size it was painted at
+     never shows. */
+  .work[data-presenting] :is(.card__gloss-track, .card__gloss, .card__spot, .slab__shadow-shift) {
+    will-change: transform;
+  }
+
+  /* While the orbit turns, the slabs are scaled as they were painted, not
+     painted again at every size; as soon as it comes to rest they are
+     painted afresh at their true size, so the words at the front are sharp. */
+  .work[data-turning] :is(.slab__shadow, [data-layer]) {
+    will-change: transform;
+  }
+
+  /* At rest, the card at the front gives its words a layer of their own,
+     painted at its true size, so the pointer can lift them off the slab
+     without the slab being painted again. While the pointer tilts it, the
+     slab keeps the painting it has. */
+  .work[data-presenting]:not([data-turning]) .orbit__slot[data-active] .card__copy {
+    will-change: transform;
+  }
+
+  .work[data-tilting]:not([data-turning]) .orbit__slot[data-active] :is(.slab__shadow, [data-layer]) {
+    will-change: transform;
+  }
+
+  /* Only the card at the front can be used. Its neighbours bring themselves round. */
+  .work[data-presenting] .orbit__slot:not([data-active]) .card {
+    pointer-events: none;
+  }
+
+  .work[data-presenting] .orbit__slot[data-near] {
+    cursor: pointer;
+  }
+
+  /* The orbit in miniature. */
+  .work[data-presenting] .work__rail {
+    position: absolute;
+    bottom: clamp(18px, 4svh, 40px);
+    left: 50%;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    translate: -50% 0;
+    pointer-events: none;
+  }
+
+  .work__mini {
+    position: relative;
+    display: block;
+    width: 42px;
+    height: 16px;
+  }
+
+  .work__mini::before {
+    content: "";
+    position: absolute;
+    inset: 3.5px 5px;
+    border: 1px solid rgb(27 24 21 / 0.16);
+    border-radius: 50%;
+  }
+
+  .work__mini > i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    margin: -2.5px 0 0 -2.5px;
+    border-radius: 50%;
+    background: var(--color-cobalt);
+  }
+
+  /* Hung off the end, so the little orbit itself sits dead centre. */
+  .work__hint {
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-left: 14px;
+    translate: 0 -50%;
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-ink-faint);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The room. It is drawn behind the orbit; its light follows the       */
+  /* project at the front, and the dust in it drifts as it turns.        */
+  /* ------------------------------------------------------------------ */
+
+  /* The room has no edges: it thins out towards the top and bottom of the
+     stage, so nothing is cut off as the stage rises into view or leaves. */
+  .work[data-presenting] .work__room {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, #000 22%, #000 84%, transparent 100%);
+  }
+
+  /* Vast arcs: a vault overhead, walls curving away on either side. */
+  .work__curve {
+    position: absolute;
+    border: 1px solid rgb(27 24 21 / 0.075);
+    border-radius: 50%;
+    box-shadow:
+      inset 0 0 160px rgb(120 118 114 / 0.07),
+      0 0 120px rgb(255 255 255 / 0.5);
+  }
+
+  .work__curve--vault {
+    top: -168vmax;
+    left: -40vmax;
+    width: 190vmax;
+    height: 190vmax;
+  }
+
+  .work__curve--east {
+    top: 4vh;
+    right: -96vmax;
+    width: 130vmax;
+    height: 130vmax;
+  }
+
+  .work__curve--west {
+    top: 38vh;
+    left: -118vmax;
+    width: 150vmax;
+    height: 150vmax;
+  }
+
+  /* One wash of light per room, with the shafts of light that fall through
+     it, at the angle its light comes in. They are cross-faded as the orbit
+     turns. */
+  .work__light {
+    position: absolute;
+    inset: -12%;
+    opacity: 0;
+    will-change: opacity;
+  }
+
+  /* Low daylight from the left, its shafts leaning in. */
+  .work__light--morning {
+    background:
+      linear-gradient(66deg, rgb(255 255 255 / 0) 1%, rgb(255 255 255 / 0.47) 7.4%, rgb(255 255 255 / 0) 16.5%),
+      linear-gradient(66deg, rgb(255 255 255 / 0) 26.8%, rgb(255 255 255 / 0.34) 35.8%, rgb(255 255 255 / 0) 48.7%),
+      linear-gradient(66deg, rgb(255 255 255 / 0) 56.5%, rgb(255 255 255 / 0.29) 61.6%, rgb(255 255 255 / 0) 70.6%),
+      linear-gradient(66deg, rgb(128 124 118 / 0.030) -24.8%, rgb(128 124 118 / 0.000) 13.9%, rgb(128 124 118 / 0.025) 52.6%, rgb(128 124 118 / 0.000) 91.3%),
+      linear-gradient(104deg, rgb(255 255 255 / 0.95) 0%, rgb(255 255 255 / 0.38) 30%, rgb(255 255 255 / 0) 58%),
+      linear-gradient(200deg, rgb(196 194 190 / 0) 52%, rgb(196 194 190 / 0.22) 100%);
+  }
+
+  /* Cool, even light from a window on the right, its shafts leaning the other way. */
+  .work__light--side {
+    background:
+      linear-gradient(110deg, rgb(255 255 255 / 0) 22.9%, rgb(255 255 255 / 0.30) 29.4%, rgb(255 255 255 / 0) 38.4%),
+      linear-gradient(110deg, rgb(255 255 255 / 0) 48.7%, rgb(255 255 255 / 0.22) 57.7%, rgb(255 255 255 / 0) 70.6%),
+      linear-gradient(110deg, rgb(255 255 255 / 0) 78.4%, rgb(255 255 255 / 0.19) 83.5%, rgb(255 255 255 / 0) 92.6%),
+      linear-gradient(110deg, rgb(128 124 118 / 0.019) -2.9%, rgb(128 124 118 / 0.000) 35.8%, rgb(128 124 118 / 0.017) 74.5%, rgb(128 124 118 / 0.000) 113.2%),
+      linear-gradient(262deg, rgb(240 245 250 / 0.98) 0%, rgb(240 245 250 / 0.34) 34%, rgb(240 245 250 / 0) 62%),
+      linear-gradient(90deg, rgb(190 196 202 / 0.24) 0%, rgb(190 196 202 / 0) 46%);
+  }
+
+  /* Soft light with no single source, lying low across the room. */
+  .work__light--soft {
+    background:
+      linear-gradient(84deg, rgb(255 255 255 / 0) 11.3%, rgb(255 255 255 / 0.17) 17.7%, rgb(255 255 255 / 0) 26.8%),
+      linear-gradient(84deg, rgb(255 255 255 / 0) 37.1%, rgb(255 255 255 / 0.12) 46.1%, rgb(255 255 255 / 0) 59%),
+      linear-gradient(84deg, rgb(255 255 255 / 0) 66.8%, rgb(255 255 255 / 0.10) 71.9%, rgb(255 255 255 / 0) 81%),
+      linear-gradient(84deg, rgb(128 124 118 / 0.011) -14.5%, rgb(128 124 118 / 0.000) 24.2%, rgb(128 124 118 / 0.009) 62.9%, rgb(128 124 118 / 0.000) 101.6%),
+      linear-gradient(0deg, rgb(255 255 255 / 0.62) 0%, rgb(255 255 255 / 0.24) 38%, rgb(255 255 255 / 0) 66%),
+      linear-gradient(180deg, rgb(200 198 194 / 0.16), rgb(200 198 194 / 0) 42%);
+  }
+
+  /* Bright daylight from overhead, its shafts upright. */
+  .work__light--daylight {
+    background:
+      linear-gradient(90deg, rgb(255 255 255 / 0) 11.3%, rgb(255 255 255 / 0.52) 17.7%, rgb(255 255 255 / 0) 26.8%),
+      linear-gradient(90deg, rgb(255 255 255 / 0) 37.1%, rgb(255 255 255 / 0.38) 46.1%, rgb(255 255 255 / 0) 59%),
+      linear-gradient(90deg, rgb(255 255 255 / 0) 66.8%, rgb(255 255 255 / 0.32) 71.9%, rgb(255 255 255 / 0) 81%),
+      linear-gradient(90deg, rgb(128 124 118 / 0.033) -14.5%, rgb(128 124 118 / 0.000) 24.2%, rgb(128 124 118 / 0.028) 62.9%, rgb(128 124 118 / 0.000) 101.6%),
+      linear-gradient(180deg, rgb(255 255 255 / 0.98) 0%, rgb(255 255 255 / 0.42) 36%, rgb(255 255 255 / 0) 66%),
+      linear-gradient(0deg, rgb(196 202 208 / 0.22), rgb(196 202 208 / 0) 42%);
+  }
+
+  .work__dust {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .work__paper {
+    position: absolute;
+    inset: 0;
+    background-image: var(--grain);
+    background-size: 220px 220px;
+    opacity: 0.13;
+  }
+
+  @media (min-width: 640px) {
+    .work__stage {
+      --gutter: 40px;
+    }
+  }
+
+  @media (min-width: 720px) {
+    .orbit__slot {
+      --radius: 28px;
+      aspect-ratio: 1.58;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .work__stage {
+      --gutter: 48px;
+    }
+  }
+}
